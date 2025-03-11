@@ -18,7 +18,7 @@ def build_transformer(
     d_ff : int = 2048,
     N : int = 6,     # Number of encoder decoder block to connect with each other in the transformer
     h : int = 8,     # number of heads (multihead attention block)
-    dropout : float= 0.1
+    dropout : float = 0.1
     ) -> Transformer:
     
     # Create Embedding Layer

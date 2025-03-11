@@ -12,17 +12,17 @@ class MultiheadAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)      # add dropout layer to avoid overfitting the model
         
         # get the heads dimension
-        assert d_model % h == 0
+        assert d_model % h == 0, "d_model is not divisible by h"
         self.dk = d_model // h
         
         # initialized parameter matrix ( Wq, Wk, Wv, Wo)
-        self.Wq = nn.Linear(d_model, d_model)
-        self.Wk = nn.Linear(d_model, d_model)
-        self.Wv = nn.Linear(d_model, d_model)
-        self.Wo = nn.Linear(d_model, d_model)
+        self.Wq = nn.Linear(d_model, d_model, bias = False)
+        self.Wk = nn.Linear(d_model, d_model, bias = False)
+        self.Wv = nn.Linear(d_model, d_model, bias = False)
+        self.Wo = nn.Linear(d_model, d_model, bias = False)
     
     @staticmethod
-    def cal_attention_scores(self, key_prime, query_prime, value_prime, mask, dropout : nn.Dropout):
+    def cal_attention_scores(query_prime, key_prime, value_prime, mask, dropout : nn.Dropout):
         '''
         Args:
             Key_prime   : Resultant matrix after mutliplying the key matrix sith its respective parameters matrix
@@ -37,15 +37,14 @@ class MultiheadAttention(nn.Module):
             X : resultant matrix after multiplying the attention scores with the values  
                    
         '''
-        
-        dk = key_prime.shape[-1]
+        dk = query_prime.shape[-1]
         
         # dimesnion are (batch_size, h, sequence_length, dk) -- > (batch_size, h, sequence_length, sequence_length)
         attention_scores = (query_prime @ key_prime.transpose(-2,-1)) / math.sqrt(dk)
         
         # now, masked the tokens which are defined to masked 
         if mask is not None:
-            attention_scores.masked_fill(mask==0, -1e9)
+            attention_scores.masked_fill_(mask == 0, -1e9)
         attention_scores = attention_scores.softmax(dim = -1)
         
         # apply the dropout layer to resultant attention scores to avoid overfitting 
@@ -66,7 +65,7 @@ class MultiheadAttention(nn.Module):
         value_heads = value_prime.view(value_prime.shape[0], value_prime.shape[1], self.h, self.dk).transpose(1, 2)
         
         # Calculate Attention scores
-        x, self.attention_scores = MultiheadAttention.cal_attention_scores(key_heads, query_heads, value_heads, mask, self.dropout)
+        x, self.attention_scores = MultiheadAttention.cal_attention_scores(query_heads, key_heads, value_heads, mask, self.dropout)
         
         # concatinate all the heads into one matrix
         # dimesnion were (batch_size, h, sequence_length, dk) --> (batch_size, sequence_length, h, dk) ---> (batch_size, sequence_legth, d_model)
@@ -83,7 +82,7 @@ class ResidualConnection(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.norm_layer = LayerNormalization()
     
-    def froward(self, x, sublayer):
+    def forward(self, x, sublayer):
         return x + self.dropout(sublayer(self.norm_layer(x)))
     
     

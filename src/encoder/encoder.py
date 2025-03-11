@@ -35,7 +35,8 @@ class EncoderBlock(nn.Module):
         x = self.residual_connection[0](x, lambda x :self.attention_block(x, x, x, src_mask))
         
         # pass the updated sequence from the last layers/ block to feedforward + Add & Norm block 
-        return self.residual_connection[1](x, self.feedforward_block)
+        x = self.residual_connection[1](x, self.feedforward_block)
+        return x
         
 
 class Encoder(nn.Module):

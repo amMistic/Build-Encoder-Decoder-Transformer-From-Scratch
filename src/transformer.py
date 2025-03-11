@@ -25,7 +25,7 @@ class Transformer(nn.Module):
         self.target_embedding = target_embedding
         self.src_pos_encoding = src_positional_encoding
         self.target_pos_encoding = trg_positional_encoding
-        self.projection_layer = projection_layer
+        self.projection_layer_ = projection_layer
         
     
     # Embedd the encoder block into transformer model
@@ -55,5 +55,5 @@ class Transformer(nn.Module):
     # Last step is to project the final output to map each token to its respective word or character in 
     # the vocabulary
     def projection_layer(self, x):
-        return self.projection_layer(x)
+        return self.projection_layer_(x)
         
